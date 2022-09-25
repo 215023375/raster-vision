@@ -1,21 +1,21 @@
 ARG CUDA_VERSION
-FROM nvidia/cuda:${CUDA_VERSION}-cudnn7-devel-ubuntu16.04
+FROM nvidia/cuda:${CUDA_VERSION}-cudnn8-runtime-ubuntu20.04
 
-RUN apt-get update && apt-get install -y software-properties-common python-software-properties
+RUN apt-get update && apt-get install -y software-properties-common
 
 RUN add-apt-repository ppa:ubuntugis/ppa && \
-    apt-get update && \
-    apt-get install -y wget=1.* git=1:2.* python-protobuf=2.* python3-tk=3.* \
-                       jq=1.5* \
-                       build-essential libsqlite3-dev=3.11.* zlib1g-dev=1:1.2.* \
+    apt update && \
+    apt install -y wget python-protobuf python3-tk=3.* \
+                       jq \
+                       build-essential libsqlite3-dev zlib1g-dev \
                        unzip curl && \
-    apt-get autoremove && apt-get autoclean && apt-get clean
+    apt autoremove && apt autoclean && apt clean
 
 # See https://github.com/mapbox/rasterio/issues/1289
 ENV CURL_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
 
 # Install Python 3.7
-RUN wget -q -O ~/miniconda.sh https://repo.anaconda.com/miniconda/Miniconda3-4.7.12.1-Linux-x86_64.sh && \
+RUN wget -q -O ~/miniconda.sh https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh && \
      chmod +x ~/miniconda.sh && \
      ~/miniconda.sh -b -p /opt/conda && \
      rm ~/miniconda.sh
