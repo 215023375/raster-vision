@@ -17,7 +17,7 @@ setup(
     name=name,
     version=version,
     description=description,
-    url='https://github.com/azavea/raster-vision',
+    url='https://github.com/215023375/raster-vision',
     author='Azavea',
     author_email='info@azavea.com',
     license='Apache License 2.0',

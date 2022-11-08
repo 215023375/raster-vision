@@ -44,7 +44,7 @@ setup(
     'on satellite and aerial imagery',
     long_description=replace_images(open('README.md').read()),
     long_description_content_type='text/markdown',
-    url='https://github.com/azavea/raster-vision',
+    url='https://github.com/215023375/raster-vision',
     author='Azavea',
     author_email='info@azavea.com',
     license='Apache License 2.0',
