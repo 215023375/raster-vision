@@ -1,38 +1,42 @@
 ARG CUDA_VERSION
 FROM nvidia/cuda:${CUDA_VERSION}-cudnn8-runtime-ubuntu20.04
 
-RUN apt-get update && apt-get install -y software-properties-common
+# wget: needed below to install conda
+# build-essential: installs gcc which is needed to install some deps like rasterio
+# libGL1: needed to avoid following error when using cv2
+# ImportError: libGL.so.1: cannot open shared object file: No such file or directory
+# See https://stackoverflow.com/questions/55313610/importerror-libgl-so-1-cannot-open-shared-object-file-no-such-file-or-directo
+RUN apt-get update && \
+   apt-get install -y wget=1.* build-essential libgl1 && \
+   apt-get autoremove && apt-get autoclean && apt-get clean
 
-RUN add-apt-repository ppa:ubuntugis/ppa && \
-    apt update && \
-    apt install -y wget python-protobuf python3-tk=3.* \
-                       jq \
-                       build-essential libsqlite3-dev zlib1g-dev \
-                       unzip curl && \
-    apt autoremove && apt autoclean && apt clean
-
-# See https://github.com/mapbox/rasterio/issues/1289
-ENV CURL_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
-
-# Install Python 3.7
-RUN wget -q -O ~/miniconda.sh https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh && \
+# Install Python and conda
+# Using Python 3.9 since that is the highest version supported by miniconda.
+RUN wget -q -O ~/miniconda.sh https://repo.anaconda.com/miniconda/Miniconda3-py39_4.12.0-Linux-x86_64.sh && \
      chmod +x ~/miniconda.sh && \
      ~/miniconda.sh -b -p /opt/conda && \
      rm ~/miniconda.sh
 ENV PATH /opt/conda/bin:$PATH
 ENV LD_LIBRARY_PATH /opt/conda/lib/:$LD_LIBRARY_PATH
-RUN conda install -y python=3.7
+RUN conda install -y python=3.9
 RUN python -m pip install --upgrade pip
-RUN conda install -y -c conda-forge gdal=3.0.4
 
-# Setup GDAL_DATA directory, rasterio needs it.
-ENV GDAL_DATA=/opt/conda/lib/python3.7/site-packages/rasterio/gdal_data/
+# We need to install GDAL first to install Rasterio on non-AMD64 architectures.
+# The Rasterio wheels contain GDAL in them, but they are only built for AMD64 now.
+RUN conda install -y -c conda-forge gdal=3.5.2
+ENV GDAL_DATA=/opt/conda/lib/python3.9/site-packages/rasterio/gdal_data/
 
-WORKDIR /opt/src/
+# This is to prevent the following error when starting the container.
+# bash: /opt/conda/lib/libtinfo.so.6: no version information available (required by bash)
+# See https://askubuntu.com/questions/1354890/what-am-i-doing-wrong-in-conda
+RUN rm /opt/conda/lib/libtinfo.so.6 && \
+   ln -s /lib/x86_64-linux-gnu/libtinfo.so.6 /opt/conda/lib/libtinfo.so.6
 
 # needed for jupyter lab extensions
 RUN curl -fsSL https://deb.nodesource.com/setup_16.x | bash - && \
     apt-get install -y nodejs
+
+WORKDIR /opt/src/
 
 COPY ./requirements-dev.txt /opt/src/requirements-dev.txt
 RUN pip install -r requirements-dev.txt

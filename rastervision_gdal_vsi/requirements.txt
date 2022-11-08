@@ -1,4 +1,2 @@
 rastervision_pipeline==0.14.0
-gdal==3.0.4
-# https://github.com/NCAR/pyngl/issues/46
-tbb==2020.3.254
+gdal==3.5.2
