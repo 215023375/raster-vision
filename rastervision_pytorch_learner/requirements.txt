@@ -1,5 +1,10 @@
-rastervision_pipeline==0.14.0
-rastervision_core==0.14.0
+# rastervision_pipeline==0.14.0
+git+https://github.com/215023375/raster-vision.git@mainline#egg=rastervision_pipeline&subdirectory=rastervision_pipeline
+
+# rastervision_core==0.14.0
+git+https://github.com/215023375/raster-vision.git@mainline#egg=rastervision_core&subdirectory=rastervision_core
+
+
 numpy==1.23.3
 pillow==9.2.0
 torch==1.12.1
