@@ -1,7 +1,7 @@
 CHANGELOG
 =========
 
-Raster Vision 0.13.1
+Raster Vision 0.14.0
 -------------------
 
 Bug Fixes
