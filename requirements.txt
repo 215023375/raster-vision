@@ -1,7 +1,7 @@
-./rastervision_pipeline
-./rastervision_aws_s3
-./rastervision_aws_batch
-./rastervision_core
-./rastervision_pytorch_learner
-./rastervision_pytorch_backend
-./rastervision_gdal_vsi
+rastervision_pipeline==0.14.0
+rastervision_aws_s3==0.14.0
+rastervision_aws_batch==0.14.0
+rastervision_core==0.14.0
+rastervision_pytorch_learner==0.14.0
+rastervision_pytorch_backend==0.14.0
+rastervision_gdal_vsi==0.14.0

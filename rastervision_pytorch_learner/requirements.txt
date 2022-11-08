@@ -1,5 +1,5 @@
-../rastervision_pipeline
-../rastervision_core
+rastervision_pipeline==0.14.0
+rastervision_core==0.14.0
 numpy==1.23.3
 pillow==9.2.0
 torch==1.12.1
