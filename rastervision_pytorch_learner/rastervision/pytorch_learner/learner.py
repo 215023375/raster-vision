@@ -51,8 +51,10 @@ log = logging.getLogger(__name__)
 MetricDict = Dict[str, float]
 
 
-def log_system_details():
-    """Log some system details."""
+def log_system_details(output_dir="/opt/data"):
+    """Log some system details.
+    :param output_dir:
+    """
     import os
     import sys
     import psutil
@@ -63,9 +65,9 @@ def log_system_details():
     mem_stats = psutil.virtual_memory()._asdict()
     log.info(f'Total memory: {mem_stats["total"] / 2**30: .2f} GB')
     # disk usage
-    disk_stats = psutil.disk_usage('/opt/data')._asdict()
+    disk_stats = psutil.disk_usage(output_dir)._asdict()
     log.info(
-        f'Size of /opt/data volume: {disk_stats["total"] / 2**30: .2f} GB')
+        f'Size of {output_dir} volume: {disk_stats["total"] / 2**30: .2f} GB')
     # python
     log.info(f'Python version: {sys.version}')
     # nvidia GPU
