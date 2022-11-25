@@ -226,7 +226,7 @@ class Learner(ABC):
         This plots the dataset, runs a training and validation loop (which will resume if
         interrupted), logs stats, plots predictions, and syncs results to the cloud.
         """
-        log_system_details()
+        log_system_details(self.cfg.output_uri)
         log.info(self.cfg)
         log.info(f'Using device: {self.device}')
         self.log_data_stats()
