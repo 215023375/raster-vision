@@ -10,7 +10,7 @@ from imp import load_source
 from urllib.parse import urlparse
 
 here = op.abspath(op.dirname(__file__))
-__version__ = '0.14.0'
+__version__ = '0.13.2'
 
 # get the dependencies and installs
 with io.open(op.join(here, 'requirements.txt'), encoding='utf-8') as f:

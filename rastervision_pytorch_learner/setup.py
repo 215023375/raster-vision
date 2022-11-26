@@ -58,7 +58,7 @@ all_install_requires = [*install_requires, *create_git_install_requires(all_reqs
 all_install_requires = [*install_requires, *create_git_install_requires(all_reqs)]
 
 name = 'rastervision_pytorch_learner'
-version = '0.14.0'
+version = '0.13.2'
 description = 'A rastervision plugin that adds PyTorch training pipelines'
 
 setup(

@@ -1,4 +1,4 @@
-# rastervision_pipeline==0.14.0
+# rastervision_pipeline==0.13.2
 git+https://github.com/215023375/raster-vision.git@mainline#egg=rastervision_pipeline&subdirectory=rastervision_pipeline
 # These 3 should be updated together to ensure compatibility. Incompatibility
 # results in a warning about pygeos versions.

@@ -35,7 +35,7 @@ install_requires = [x.strip() for x in all_reqs if 'git+' not in x]
 all_install_requires = [*install_requires, *create_git_install_requires(all_reqs)]
 
 name = 'rastervision_pipeline'
-version = '0.14.0'
+version = '0.13.2'
 description = 'The main rastervision package for configuring, defining, and running pipelines'
 
 setup(
