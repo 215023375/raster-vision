@@ -1,6 +1,7 @@
 from typing import Iterable, List, Type, TYPE_CHECKING, Optional, Callable
 import inspect
 from click import Command
+from rastervision.pipeline import RVConfig
 
 if TYPE_CHECKING:
     from rastervision.pipeline.runner import Runner  # noqa
@@ -28,6 +29,23 @@ class Registry():
         self.type_hint_to_lineage = {}
         self.type_hint_to_plugin = {}
         self.type_hint_to_upgrader = {}
+
+        # TODO: Improve this
+        # Custom: import custom modules defined in the $PWD/.rastervision:[custom-imports] modules = <space separated modules>
+        import importlib
+        rv_config = RVConfig()
+        config_dict = rv_config.get_config_dict({
+            '215023375_custom': ['import_modules']
+        })
+        print("config dict: ", config_dict)
+        modules_to_import = config_dict.get('215023375_custom_import_modules')
+        if modules_to_import:
+            modules_to_import_split = modules_to_import.split(" ")
+            for module_to_import in modules_to_import_split:
+                print(f"Importing module: {module_to_import}")
+                importlib.import_module(module_to_import)
+
+
 
     def add_plugin_command(self, cmd: Command):
         """Add a click command contributed by a plugin."""
