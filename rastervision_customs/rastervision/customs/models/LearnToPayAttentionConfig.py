@@ -2,7 +2,7 @@ from rastervision.pytorch_learner import ClassificationModelConfig
 from typing import (Optional)
 from rastervision.pipeline.config import (register_config, Field)
 from torch import nn
-from rastervision_customs import CustomBackbone
+from raservision.customs import CustomBackbone
 
 
 # Annotation not working as expected,  needs to be built into rastervision. Adding manually at the end of file
