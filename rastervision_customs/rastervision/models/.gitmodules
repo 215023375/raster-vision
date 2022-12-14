@@ -1,0 +1,3 @@
+[submodule "LearnToPayAttention"]
+	path = LearnToPayAttention
+	url = git@github.com:215023375/LearnToPayAttention.git
