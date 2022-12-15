@@ -2,7 +2,9 @@ from rastervision.pytorch_learner import ClassificationModelConfig
 from typing import (Optional)
 from rastervision.pipeline.config import (register_config, Field)
 from torch import nn
-from raservision.customs import CustomBackbone
+from rastervision.customs import CustomBackbone
+
+from rastervision.customs.models.LearnToPayAttention.model1 import AttnVGG_before
 
 
 # Annotation not working as expected,  needs to be built into rastervision. Adding manually at the end of file
