@@ -5,4 +5,4 @@ git+https://github.com/215023375/raster-vision.git@mainline#egg=rastervision_cor
 git+https://github.com/215023375/raster-vision.git@mainline#egg=rastervision_pytorch_learner&subdirectory=rastervision_pytorch_learner
 git+https://github.com/215023375/raster-vision.git@mainline#egg=rastervision_pytorch_backend&subdirectory=rastervision_pytorch_backend
 git+https://github.com/215023375/raster-vision.git@mainline#egg=rastervision_gdal_vsi&subdirectory=rastervision_gdal_vsi
-git+https://github.com/215023375/raster-vision.git@external-config-registry#egg=rastervision_customs&subdirectory=rastervision_customs
+git+https://github.com/215023375/raster-vision.git@419ebadcc4a9699768e944cc3d83ddb75fd2c951#egg=rastervision_customs&subdirectory=rastervision_customs
