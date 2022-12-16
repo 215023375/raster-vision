@@ -1,3 +1,4 @@
 [submodule "rastervision/customs/models/LearnToPayAttention"]
 	path = rastervision/customs/models/LearnToPayAttention
 	url = git@github.com:215023375/LearnToPayAttention.git
+	branch = master

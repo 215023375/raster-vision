@@ -1,9 +1,7 @@
-# How to test this?
-from rastervision_customs
-
-# Create model config
-## Can confirm if we can create this model successfully
-## TODO: Add test data
+from rastervision.customs.models import LearnToPayAttentionConfig
 
 
-# How do I run this to check what the model outputs?
+if __name__ == "__main__":
+    after_ltpa_config = LearnToPayAttentionConfig()
+
+    print("Done creating config for LTPA-after model.")

@@ -4,8 +4,7 @@ from rastervision.pipeline.config import (register_config, Field)
 from torch import nn
 from rastervision.customs import CustomBackbone
 
-from rastervision.customs.models.LearnToPayAttention.model1 import AttnVGG_before
-
+from rastervision_customs.rastervision.customs.models.LearnToPayAttention.model2 import AttnVGG_after
 
 # Annotation not working as expected,  needs to be built into rastervision. Adding manually at the end of file
 @register_config(CustomBackbone.LPTA_attention_after_pooling.value)
@@ -68,4 +67,4 @@ class LTPAAfterPoolingVGGModelConfig(ClassificationModelConfig):
         """
         # TODO: Use more of the fields available
         print(f"[Building model] backbone string: {self.get_backbone_str()}")
-        return AttnVGG_before(512, num_classes)
+        return AttnVGG_after(512, num_classes)

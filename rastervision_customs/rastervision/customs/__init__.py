@@ -1,1 +1,1 @@
-from .backbones import *
+from rastervision.customs.backbones import *
