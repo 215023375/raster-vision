@@ -1,3 +1,3 @@
 [submodule "rastervision_customs"]
-	path = rastervision_pipeline/rastervision/customs
+	path = rastervision_customs
 	url = git@github.com:215023375/rastervision-custom-models.git
