@@ -36,6 +36,6 @@ sh.setFormatter(formatter)
 root_logger.addHandler(sh)
 
 rv_config = RVConfig()
-registry = Registry(rv_config)
+registry = Registry()
 registry.load_plugins()
 registry.load_builtins()
