@@ -1,8 +1,8 @@
-git+https://github.com/215023375/raster-vision.git@mainline#egg=rastervision_pipeline&subdirectory=rastervision_pipeline
-git+https://github.com/215023375/raster-vision.git@mainline#egg=rastervision_aws_s3&subdirectory=rastervision_aws_s3
-git+https://github.com/215023375/raster-vision.git@mainline#egg=rastervision_aws_batch&subdirectory=rastervision_aws_batch
-git+https://github.com/215023375/raster-vision.git@mainline#egg=rastervision_core&subdirectory=rastervision_core
-git+https://github.com/215023375/raster-vision.git@mainline#egg=rastervision_pytorch_learner&subdirectory=rastervision_pytorch_learner
-git+https://github.com/215023375/raster-vision.git@mainline#egg=rastervision_pytorch_backend&subdirectory=rastervision_pytorch_backend
-git+https://github.com/215023375/raster-vision.git@mainline#egg=rastervision_gdal_vsi&subdirectory=rastervision_gdal_vsi
+git+https://github.com/215023375/raster-vision.git@external-config-registry-no-jittor#egg=rastervision_pipeline&subdirectory=rastervision_pipeline
+git+https://github.com/215023375/raster-vision.git@external-config-registry-no-jittor#egg=rastervision_aws_s3&subdirectory=rastervision_aws_s3
+git+https://github.com/215023375/raster-vision.git@external-config-registry-no-jittor#egg=rastervision_aws_batch&subdirectory=rastervision_aws_batch
+git+https://github.com/215023375/raster-vision.git@external-config-registry-no-jittor#egg=rastervision_core&subdirectory=rastervision_core
+git+https://github.com/215023375/raster-vision.git@external-config-registry-no-jittor#egg=rastervision_pytorch_learner&subdirectory=rastervision_pytorch_learner
+git+https://github.com/215023375/raster-vision.git@external-config-registry-no-jittor#egg=rastervision_pytorch_backend&subdirectory=rastervision_pytorch_backend
+git+https://github.com/215023375/raster-vision.git@external-config-registry-no-jittor#egg=rastervision_gdal_vsi&subdirectory=rastervision_gdal_vsi
 git+https://github.com/215023375/raster-vision.git@external-config-registry-no-jittor#egg=rastervision_customs&subdirectory=rastervision_customs
