@@ -112,6 +112,18 @@ def fill_overflow(extent: Box,
     arr[:, w - right_overflow:] = fill_value
     return arr
 
+def reshape_to_fill(extent: Box,
+                  window: Box,
+                  arr: np.ndarray) -> np.ndarray:
+    """Given a window and corresponding array of values, if the window
+    overflows the extent, reshape the extent to fill the window
+    """
+    window_x = window.xmax - window.xmin
+    window_y = window.y_max - window.ymin
+
+    new_shape = (window_y, window_x, *arr.shape[2:])
+    return np.reshape(arr, new_shape)
+
 
 def get_channel_order_from_dataset(
         image_dataset: 'DatasetReader') -> List[int]:
@@ -144,7 +156,9 @@ class RasterioSource(RasterSource):
                  allow_streaming: bool = False,
                  channel_order: Optional[Sequence[int]] = None,
                  extent: Optional[Box] = None,
-                 tmp_dir: Optional[str] = None):
+                 tmp_dir: Optional[str] = None,
+                 reshape_to_fill_window: Optional[bool] = False,
+                 ):
         """Constructor.
 
         Args:
@@ -163,9 +177,12 @@ class RasterioSource(RasterSource):
             tmp_dir (Optional[str]): Directory to use for storing the VRT
                 (needed if multiple uris or allow_streaming=True). If None,
                 will be auto-generated. Defaults to None.
+            reshape_to_fill_window (Optional[bool]): Flag to determine whether to fill the Window with
+                zeros or reshape to fill.
         """
         self.uris = listify_uris(uris)
         self.allow_streaming = allow_streaming
+        self.reshape_to_fill_window = reshape_to_fill_window
         self._num_channels = None
         self._dtype = None
 
@@ -269,7 +286,9 @@ class RasterioSource(RasterSource):
             window=window.rasterio_format(),
             is_masked=self.is_masked,
             out_shape=out_shape)
-        chip = fill_overflow(self.extent, window, chip)
+
+        chip = reshape_to_fill(self.extent, window, chip) if self.reshape_to_fill_window else \
+                fill_overflow(self.extent, window, chip)
         return chip
 
     def get_chip(self,
