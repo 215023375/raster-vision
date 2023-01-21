@@ -1,8 +1,8 @@
 # rastervision_pipeline==0.13.2
-git+https://github.com/215023375/raster-vision.git@external-config-registry-no-jittor#egg=rastervision_pipeline&subdirectory=rastervision_pipeline
+git+https://github.com/215023375/raster-vision.git@mainline#egg=rastervision_pipeline&subdirectory=rastervision_pipeline
 
 # rastervision_core==0.13.2
-git+https://github.com/215023375/raster-vision.git@external-config-registry-no-jittor#egg=rastervision_core&subdirectory=rastervision_core
+git+https://github.com/215023375/raster-vision.git@mainline#egg=rastervision_core&subdirectory=rastervision_core
 
 
 numpy==1.23.3
