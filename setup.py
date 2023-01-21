@@ -39,7 +39,7 @@ def create_git_install_requires(all_requirements: list) -> list:
         if 'git+' not in req:
             continue
         # req is git url
-        # git+https://github.com/215023375/raster-vision.git@external-config-registry-no-jittor#egg=rastervision_pipeline&subdirectory=rastervision_pipeline
+        # git+https://github.com/215023375/raster-vision.git@mainline#egg=rastervision_pipeline&subdirectory=rastervision_pipeline
         parsed_url = urlparse(req)
         url_fragments = parsed_url.fragment.split('&')
         package_name = [fragment for fragment in url_fragments if 'egg=' in fragment][0].replace("egg=", "")
