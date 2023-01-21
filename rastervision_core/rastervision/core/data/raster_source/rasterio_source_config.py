@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from rastervision.core.data.raster_source import RasterSourceConfig, RasterioSource
 from rastervision.pipeline.config import ConfigError, Field, register_config
@@ -32,6 +32,7 @@ class RasterioSourceConfig(RasterSourceConfig):
         False,
         description=(
             'Allow streaming of assets rather than always downloading.'))
+    reshape_to_fill_window = Optional[bool] = Field(False, description=('Determine whether to reshape the image to fill the window'))
 
     def build(self, tmp_dir, use_transformers=True):
         raster_transformers = ([rt.build() for rt in self.transformers]
@@ -43,4 +44,6 @@ class RasterioSourceConfig(RasterSourceConfig):
             tmp_dir=tmp_dir,
             allow_streaming=self.allow_streaming,
             channel_order=self.channel_order,
-            extent=self.extent)
+            extent=self.extent,
+            reshape_to_fill_window=self.reshape_to_fill_window,
+        )
