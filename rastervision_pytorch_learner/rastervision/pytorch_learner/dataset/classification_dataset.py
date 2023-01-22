@@ -1,6 +1,7 @@
 from typing import TYPE_CHECKING, Iterable, List, Optional, Union
 import logging
 
+from rastervision.pytorch_learner import FullImageWindowGeoDataset
 from rastervision.pytorch_learner.dataset import (
     ImageDataset, TransformType, SlidingWindowGeoDataset,
     RandomWindowGeoDataset, make_image_folder_dataset)
@@ -95,6 +96,13 @@ class ClassificationSlidingWindowGeoDataset(SlidingWindowGeoDataset):
 
 
 class ClassificationRandomWindowGeoDataset(RandomWindowGeoDataset):
+    from_uris = classmethod(make_cc_geodataset)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(
+            *args, **kwargs, transform_type=TransformType.classification)
+
+class ClassificationFullImageWindowGeoDataset(FullImageWindowGeoDataset):
     from_uris = classmethod(make_cc_geodataset)
 
     def __init__(self, *args, **kwargs):

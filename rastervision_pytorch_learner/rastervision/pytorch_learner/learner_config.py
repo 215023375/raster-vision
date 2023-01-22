@@ -1053,6 +1053,7 @@ class ImageDataConfig(DataConfig):
 class GeoDataWindowMethod(Enum):
     sliding = 'sliding'
     random = 'random'
+    whole_image = 'whole_image'
 
 
 @register_config('geo_data_window')

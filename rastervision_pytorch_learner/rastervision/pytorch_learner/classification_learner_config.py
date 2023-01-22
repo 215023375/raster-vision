@@ -7,6 +7,7 @@ from torch import nn
 
 from rastervision.core.data import Scene
 from rastervision.pipeline.config import (Config, register_config, ConfigError)
+from rastervision.pytorch_learner import ClassificationFullImageWindowGeoDataset
 from rastervision.pytorch_learner.learner_config import (
     LearnerConfig, ModelConfig, ImageDataConfig, GeoDataConfig,
     GeoDataWindowMethod)
@@ -82,6 +83,10 @@ class ClassificationGeoDataConfig(ClassificationDataConfig, GeoDataConfig):
                 max_sample_attempts=opts.max_sample_attempts,
                 efficient_aoi_sampling=opts.efficient_aoi_sampling,
                 transform=transform)
+        elif opts.method == GeoDataWindowMethod.whole_image:
+            ds = ClassificationFullImageWindowGeoDataset(
+                scene
+            )
         else:
             raise NotImplementedError()
         return ds
