@@ -66,13 +66,18 @@ def load_window(
     """
     if bands is not None:
         bands = tuple(bands)
-    im = image_dataset.read(
+
+    read_kwargs = dict(
         indexes=bands,
-        window=window,
         boundless=True,
         masked=is_masked,
         out_shape=out_shape,
-        resampling=Resampling.bilinear)
+        resampling=Resampling.bilinear
+    )
+    # Conditionally adding the window kwarg if it is not None
+    if window is not None: read_kwargs.update({ 'window': window })
+
+    im = image_dataset.read(**read_kwargs)
 
     if is_masked:
         im = np.ma.filled(im, fill_value=0)
