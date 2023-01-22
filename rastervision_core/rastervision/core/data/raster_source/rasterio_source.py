@@ -118,8 +118,12 @@ def reshape_to_fill(extent: Box,
     """Given a window and corresponding array of values, if the window
     overflows the extent, reshape the extent to fill the window
     """
+    import random
+    if random.random() < 0.15:
+            print(f"Extent: {extent}, window: {window}, chip size: {arr.shape}")
+
     window_x = window.xmax - window.xmin
-    window_y = window.y_max - window.ymin
+    window_y = window.ymax - window.ymin
 
     new_shape = (window_y, window_x, *arr.shape[2:])
     return np.reshape(arr, new_shape)
@@ -157,7 +161,7 @@ class RasterioSource(RasterSource):
                  channel_order: Optional[Sequence[int]] = None,
                  extent: Optional[Box] = None,
                  tmp_dir: Optional[str] = None,
-                 reshape_to_fill_window: Optional[bool] = False,
+                 load_whole_image: Optional[bool] = False,
                  ):
         """Constructor.
 
@@ -177,12 +181,12 @@ class RasterioSource(RasterSource):
             tmp_dir (Optional[str]): Directory to use for storing the VRT
                 (needed if multiple uris or allow_streaming=True). If None,
                 will be auto-generated. Defaults to None.
-            reshape_to_fill_window (Optional[bool]): Flag to determine whether to fill the Window with
+            load_whole_image (Optional[bool]): Flag to determine whether to fill the Window with
                 zeros or reshape to fill.
         """
         self.uris = listify_uris(uris)
         self.allow_streaming = allow_streaming
-        self.reshape_to_fill_window = reshape_to_fill_window
+        self.load_whole_image = load_whole_image
         self._num_channels = None
         self._dtype = None
 
@@ -194,6 +198,7 @@ class RasterioSource(RasterSource):
         self.imagery_path = self.download_data(
             self.tmp_dir, stream=self.allow_streaming)
         self.image_dataset = rasterio.open(self.imagery_path)
+        print("Image dataset: ", self.image_dataset)
 
         block_shapes = set(self.image_dataset.block_shapes)
         if len(block_shapes) > 1:
@@ -283,12 +288,11 @@ class RasterioSource(RasterSource):
         chip = load_window(
             self.image_dataset,
             bands=bands,
-            window=window.rasterio_format(),
+            window=None if self.load_whole_image else window.rasterio_format(), # Load the whole raster image
             is_masked=self.is_masked,
             out_shape=out_shape)
 
-        chip = reshape_to_fill(self.extent, window, chip) if self.reshape_to_fill_window else \
-                fill_overflow(self.extent, window, chip)
+        chip = fill_overflow(self.extent, window, chip)
         return chip
 
     def get_chip(self,

@@ -32,18 +32,12 @@ class RasterioSourceConfig(RasterSourceConfig):
         False,
         description=(
             'Allow streaming of assets rather than always downloading.'))
-    reshape_to_fill_window = Optional[bool] = Field(False, description=('Determine whether to reshape the image to fill the window'))
+    load_whole_image: Optional[bool] = Field(False, description=('Determine whether to reshape the image to fill the window'))
 
     def build(self, tmp_dir, use_transformers=True):
         raster_transformers = ([rt.build() for rt in self.transformers]
                                if use_transformers else [])
 
-        return RasterioSource(
-            uris=self.uris,
-            raster_transformers=raster_transformers,
-            tmp_dir=tmp_dir,
-            allow_streaming=self.allow_streaming,
-            channel_order=self.channel_order,
-            extent=self.extent,
-            reshape_to_fill_window=self.reshape_to_fill_window,
-        )
+        return RasterioSource(uris=self.uris, raster_transformers=raster_transformers,
+                              allow_streaming=self.allow_streaming, channel_order=self.channel_order,
+                              extent=self.extent, tmp_dir=tmp_dir, load_whole_image=self.load_whole_image)
