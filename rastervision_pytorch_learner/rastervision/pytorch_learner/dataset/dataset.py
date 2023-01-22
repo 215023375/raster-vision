@@ -399,3 +399,42 @@ class RandomWindowGeoDataset(GeoDataset):
 
     def __len__(self):
         return self.max_windows
+
+class FullImageWindowGeoDataset(RandomWindowGeoDataset):
+    """Read the scene by sampling random window sizes and locations.
+    """
+
+    # We only have one sample window
+    def sample_window_size(self) -> Tuple[int, int]:
+        return self.get_window_size()
+
+    def sample_window_loc(self, h: int, w: int) -> Tuple[int, int]:
+        raise NotImplementedError()
+
+    def _sample_window(self) -> Box:
+        raise NotImplementedError()
+
+    def sample_window(self) -> Box:
+        """If scene has AOI polygons, try to find a random window that is
+        within the AOI. Otherwise, just return the first sampled window.
+
+        Raises:
+            StopIteration: If unable to find a valid window within
+                self.max_sample_attempts attempts.
+
+        Returns:
+            Box: The sampled window.
+        """
+        scene_dimensions = self.scene.raster_source.extent
+        return scene_dimensions
+
+    def __getitem__(self, idx: int):
+        if idx >= len(self):
+            raise StopIteration()
+        window = self.sample_window()
+        if self.return_window:
+            return (super().__getitem__(window), window)
+        return super().__getitem__(window)
+
+    def __len__(self):
+        return self.max_windows
