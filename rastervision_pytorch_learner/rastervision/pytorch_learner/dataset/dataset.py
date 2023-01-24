@@ -400,19 +400,84 @@ class RandomWindowGeoDataset(GeoDataset):
     def __len__(self):
         return self.max_windows
 
-class FullImageWindowGeoDataset(RandomWindowGeoDataset):
-    """Read the scene by sampling random window sizes and locations.
+class FullImageWindowGeoDataset(GeoDataset):
+    """
+    Using the whole scene as the dataset
     """
 
+    def __init__(self,
+                 scene: Scene,
+                 transform: Optional[A.BasicTransform] = None,
+                 transform_type: Optional[TransformType] = None,
+                 normalize: bool = True,
+                 to_pytorch: bool = True):
+        """Constructor.
+
+        Args:
+            scene (Scene): A Scene object.
+            transform (Optional[A.BasicTransform], optional): Albumentations
+                transform to apply to the windows. Defaults to None.
+            transform_type (Optional[TransformType], optional): Type of
+                transform. Defaults to None.
+            normalize (bool, optional): If True, x is normalized to [0, 1]
+                based on its data type. Defaults to True.
+            to_pytorch (bool, optional): If True, x and y are converted to
+                pytorch tensors. Defaults to True.
+        """
+
+        super().__init__(
+            scene,
+            transform,
+            transform_type,
+            normalize=normalize,
+            to_pytorch=to_pytorch)
+
+        # include padding in the extent
+        self.return_window = None
+        ymin, xmin, ymax, xmax = scene.raster_source.extent
+        self.extent = Box(ymin, xmin , ymax, xmax)
+
+
     # We only have one sample window
-    def sample_window_size(self) -> Tuple[int, int]:
-        return self.get_window_size()
+    def get_resize_transform(
+            self, transform: Optional[A.BasicTransform],
+            out_size: Tuple[PosInt, PosInt]) -> Union[A.Resize, A.Compose]:
+        """Get transform to use for resizing windows to out_size."""
+        resize_tf = A.Resize(*out_size, always_apply=True)
+        if transform is None:
+            transform = resize_tf
+        else:
+            transform = A.Compose([transform, resize_tf])
+        return transform
 
-    def sample_window_loc(self, h: int, w: int) -> Tuple[int, int]:
-        raise NotImplementedError()
+    @property
+    def min_size(self):
+        """
+        Scene extent size
+        """
+        ymin, xmin, ymax, xmax = self.extent
+        return ymax - ymin, xmax - xmin
 
-    def _sample_window(self) -> Box:
-        raise NotImplementedError()
+    @property
+    def max_size(self):
+        return self.min_size
+
+    @property
+    def window_size(self) -> Tuple[int, int]:
+        """Use extent size as window size to sample"""
+        return self.min_size
+
+    @property
+    def window_loc(self) -> Tuple[int, int]:
+        """Randomly sample coordinates of the top left corner of the window."""
+        return 0, 0
+
+    def _window(self) -> Box:
+        """Randomly sample a window with random size and location."""
+        h, w = self.window_size
+        x, y = self.window_loc
+        window = Box(y, x, y + h, x + w)
+        return window
 
     def sample_window(self) -> Box:
         """If scene has AOI polygons, try to find a random window that is
@@ -425,8 +490,8 @@ class FullImageWindowGeoDataset(RandomWindowGeoDataset):
         Returns:
             Box: The sampled window.
         """
-        scene_dimensions = self.scene.raster_source.extent
-        return scene_dimensions
+        window = self._window()
+        return window
 
     def __getitem__(self, idx: int):
         if idx >= len(self):
@@ -437,4 +502,5 @@ class FullImageWindowGeoDataset(RandomWindowGeoDataset):
         return super().__getitem__(window)
 
     def __len__(self):
-        return self.max_windows
+        # Using the whole scene's raster_source as the indexable datase
+        return 1

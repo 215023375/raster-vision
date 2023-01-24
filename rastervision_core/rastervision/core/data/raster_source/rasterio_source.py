@@ -203,7 +203,6 @@ class RasterioSource(RasterSource):
         self.imagery_path = self.download_data(
             self.tmp_dir, stream=self.allow_streaming)
         self.image_dataset = rasterio.open(self.imagery_path)
-        print("Image dataset: ", self.image_dataset)
 
         block_shapes = set(self.image_dataset.block_shapes)
         if len(block_shapes) > 1:

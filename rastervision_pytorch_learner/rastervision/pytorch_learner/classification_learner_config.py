@@ -7,13 +7,12 @@ from torch import nn
 
 from rastervision.core.data import Scene
 from rastervision.pipeline.config import (Config, register_config, ConfigError)
-from rastervision.pytorch_learner import ClassificationFullImageWindowGeoDataset
 from rastervision.pytorch_learner.learner_config import (
     LearnerConfig, ModelConfig, ImageDataConfig, GeoDataConfig,
     GeoDataWindowMethod)
 from rastervision.pytorch_learner.dataset import (
     ClassificationImageDataset, ClassificationSlidingWindowGeoDataset,
-    ClassificationRandomWindowGeoDataset)
+    ClassificationRandomWindowGeoDataset, ClassificationFullImageWindowGeoDataset)
 from rastervision.pytorch_learner.utils import adjust_conv_channels
 
 log = logging.getLogger(__name__)
