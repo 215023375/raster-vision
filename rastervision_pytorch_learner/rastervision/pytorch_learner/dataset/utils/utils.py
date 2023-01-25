@@ -5,7 +5,7 @@ from pathlib import Path
 from itertools import chain
 
 import numpy as np
-from torchvision.datasets.folder import (IMG_EXTENSIONS, DatasetFolder)
+from torchvision.datasets.folder import (IMG_EXTENSIONS, DatasetFolder, ImageFolder)
 from PIL import Image
 
 IMG_EXTENSIONS = tuple([*IMG_EXTENSIONS, '.npy'])
@@ -57,10 +57,10 @@ def make_image_folder_dataset(data_dir: str,
         return DatasetFolder(
             data_dir, loader=load_image, extensions=IMG_EXTENSIONS)
 
-    class ImageFolder(DatasetFolder):
+    class CustomImageFolder(ImageFolder):
         def find_classes(self,
                          directory: str) -> Tuple[List[str], Dict[str, int]]:
             """Override to force mapping from class name to class index."""
             return classes, {c: i for (i, c) in enumerate(classes)}
 
-    return ImageFolder(data_dir, loader=load_image, extensions=IMG_EXTENSIONS)
+    return CustomImageFolder(data_dir, loader=load_image, extensions=IMG_EXTENSIONS)

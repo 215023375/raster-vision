@@ -21,82 +21,71 @@ class ClassificationLabel:
         return iter((self.class_id, self.scores))
 
 
-class ChipClassificationLabels(Labels):
-    """Represents a spatial grid of cells associated with classes."""
+class FullWindowClassificationLabels(Labels):
+    """Represents whole scene image (no grid) associated with classes."""
 
     def __init__(self,
-                 cell_to_label: Optional[Dict[Box, Tuple[int, Optional[
+                 scene_to_label: Optional[Dict[Scene.id, Tuple[int, Optional[
                      Sequence[float]]]]] = None):
-        if cell_to_label is None:
-            cell_to_label = {}
+        if scene_to_label is None:
+            scene_to_label = {}
 
-        self.cell_to_label = {
-            c: ClassificationLabel(*v)
-            for c, v in cell_to_label.items()
+        self.scene_to_label = {
+            scene: ClassificationLabel(*label)
+            for scene, label in scene_to_label.items()
         }
 
     def __len__(self) -> int:
-        return len(self.cell_to_label)
+        return len(self.scene_to_label)
 
     def __eq__(self, other: 'FullWindowClassificationLabels') -> bool:
-        return (isinstance(other, ChipClassificationLabels)
-                and self.cell_to_label == other.cell_to_label)
+        return (isinstance(other, FullWindowClassificationLabels)
+                and self.scene_to_label == other.scene_to_label)
 
     def __add__(self, other: 'FullWindowClassificationLabels'
                 ) -> 'FullWindowClassificationLabels':
-        result = ChipClassificationLabels()
+        result = FullWindowClassificationLabels()
         result.extend(self)
         result.extend(other)
         return result
 
     def __contains__(self, cell: Box) -> bool:
-        return cell in self.cell_to_label
+        return cell in self.scene_to_label
 
-    def __getitem__(self, cell: Box) -> ClassificationLabel:
-        return self.cell_to_label[cell]
+    def __getitem__(self, scene: Scene) -> ClassificationLabel:
+        return self.scene_to_label[scene.id]
 
-    def __setitem__(self, window: Box,
+    def __setitem__(self, scene: Scene,
                     value: Tuple[int, Optional[Sequence[float]]]):
         class_id, scores = value
-        self.set_cell(window, class_id, scores=scores)
+        self.set_cell(scene.id, class_id, scores=scores)
 
     @classmethod
-    def from_predictions(cls, windows: Iterable['Box'],
+    def from_predictions(cls, scenes: Iterable[Scene],
                          predictions: Iterable[Any]) -> 'Labels':
         """Overrid to convert predictions to (class_id, scores) pairs."""
         predictions = ((np.argmax(p), p) for p in predictions)
-        return super().from_predictions(windows, predictions)
+        return super().from_predictions(scenes, predictions)
 
     @classmethod
     def make_empty(cls) -> 'FullWindowClassificationLabels':
-        return ChipClassificationLabels()
-
-    def filter_by_aoi(self, aoi_polygons: Iterable['Polygon']):
-        result = ChipClassificationLabels()
-        for cell in self.cell_to_label:
-            cell_box = Box(*cell)
-            cell_poly = cell_box.to_shapely()
-            for aoi in aoi_polygons:
-                if cell_poly.within(aoi):
-                    (class_id, scores) = self.cell_to_label[cell]
-                    result.set_cell(cell_box, class_id, scores)
-        return result
+        return FullWindowClassificationLabels()
 
     def set_cell(self,
-                 cell: Box,
+                 scene_id: Scene.id,
                  class_id: int,
                  scores: Optional['np.ndarray'] = None) -> None:
         """Set cell and its class_id.
 
         Args:
-            cell: (Box)
+            scene_id: (Scene.id)
             class_id: int
             scores: 1d numpy array of probabilities for each class
         """
         if scores is not None:
             scores = list(map(lambda x: float(x), list(scores)))
         class_id = int(class_id)
-        self.cell_to_label[cell] = ClassificationLabel(class_id, scores)
+        self.scene_to_label[scene_id] = ClassificationLabel(class_id, scores)
 
     def get_cell_class_id(self, cell: Box) -> int:
         """Return class_id for a cell.
@@ -104,7 +93,7 @@ class ChipClassificationLabels(Labels):
         Args:
             cell: (Box)
         """
-        result = self.cell_to_label.get(cell)
+        result = self.scene_to_label.get(cell)
         if result is not None:
             return result.class_id
         else:
@@ -116,7 +105,7 @@ class ChipClassificationLabels(Labels):
         Args:
             cell: (Box)
         """
-        result = self.cell_to_label.get(cell)
+        result = self.scene_to_label.get(cell)
         if result is not None:
             return result.score
         else:
@@ -128,23 +117,23 @@ class ChipClassificationLabels(Labels):
         Args:
             cell: (Box)
         """
-        return ChipClassificationLabels({cell: self[cell]})
+        return FullWindowClassificationLabels({cell: self[cell]})
 
     def get_cells(self) -> List[Box]:
         """Return list of all cells (list of Box)."""
-        return list(self.cell_to_label.keys())
+        return list(self.scene_to_label.keys())
 
     def get_class_ids(self) -> List[int]:
         """Return list of class_ids for all cells."""
-        return [label.class_id for label in self.cell_to_label.values()]
+        return [label.class_id for label in self.scene_to_label.values()]
 
     def get_scores(self) -> List[Optional[Sequence[float]]]:
         """Return list of scores for all cells."""
-        return [label.scores for label in self.cell_to_label.values()]
+        return [label.scores for label in self.scene_to_label.values()]
 
     def get_values(self) -> List[ClassificationLabel]:
         """Return list of class_ids and scores for all cells."""
-        return list(self.cell_to_label.values())
+        return list(self.scene_to_label.values())
 
     def extend(self, labels: 'FullWindowClassificationLabels') -> None:
         """Adds cells contained in labels.
@@ -153,7 +142,7 @@ class ChipClassificationLabels(Labels):
             labels: FullWindowClassificationLabels
         """
         for cell in labels.get_cells():
-            self.set_cell(cell, *labels[cell])
+            self.set_cell(cell, )
 
     def save(self, uri: str, class_config: 'ClassConfig',
              crs_transformer: 'CRSTransformer') -> None:

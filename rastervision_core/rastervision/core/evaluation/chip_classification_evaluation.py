@@ -14,8 +14,8 @@ class ChipClassificationEvaluation(ClassificationEvaluation):
         super().__init__()
         self.class_config = class_config
 
-    def compute(self, gt_labels: 'ChipClassificationLabels',
-                pred_labels: 'ChipClassificationLabels') -> None:
+    def compute(self, gt_labels: 'FullWindowClassificationLabels',
+                pred_labels: 'FullWindowClassificationLabels') -> None:
         self.reset()
         self.class_to_eval_item = {}
 

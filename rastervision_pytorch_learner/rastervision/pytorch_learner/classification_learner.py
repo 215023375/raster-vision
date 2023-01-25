@@ -13,8 +13,8 @@ warnings.filterwarnings('ignore')
 
 log = logging.getLogger(__name__)
 
-
 class ClassificationLearner(Learner):
+    _PRINT_Y_BATCH = None
     def get_visualizer_class(self):
         return ClassificationVisualizer
 
@@ -27,6 +27,11 @@ class ClassificationLearner(Learner):
         x, y = batch
         out = self.post_forward(self.model(x))
         val_loss = self.loss(out, y)
+
+        if self._PRINT_Y_BATCH is None:
+            print("Y batch: ", y)
+            print("Out: ", out)
+            self._PRINT_Y_BATCH = 1
 
         num_labels = len(self.cfg.data.class_names)
         out = self.prob_to_pred(out)

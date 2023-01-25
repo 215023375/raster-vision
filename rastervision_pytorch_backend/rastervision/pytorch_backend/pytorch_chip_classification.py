@@ -55,7 +55,7 @@ class PyTorchChipClassification(PyTorchLearnerBackend):
                       scene: 'Scene',
                       chip_sz: int,
                       stride: Optional[int] = None
-                      ) -> 'ChipClassificationLabels':
+                      ) -> 'FullWindowClassificationLabels':
         if stride is None:
             stride = chip_sz
 

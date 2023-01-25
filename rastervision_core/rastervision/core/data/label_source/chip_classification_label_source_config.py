@@ -2,7 +2,8 @@ from typing import Optional
 
 from rastervision.core.data.vector_source import (VectorSourceConfig)
 from rastervision.core.data.label_source import (LabelSourceConfig,
-                                                 ChipClassificationLabelSource)
+                                                 ChipClassificationLabelSource,
+                                                 FullImageClassificationLabelSource)
 from rastervision.pipeline.config import (ConfigError, register_config, Field,
                                           validator, root_validator)
 from rastervision.core.data.vector_transformer import (
@@ -44,6 +45,12 @@ class ChipClassificationLabelSourceConfig(LabelSourceConfig):
          ))
     background_class_id: Optional[int] = Field(
         None,
+        description=
+        ('If not None, class_id to use as the background class; ie. the one that is used '
+         'when a window contains no boxes. Cannot be None if infer_cells=True.'
+         ))
+    use_feature_label_as_main: Optional[bool] = Field(
+        False,
         description=
         ('If not None, class_id to use as the background class; ie. the one that is used '
          'when a window contains no boxes. Cannot be None if infer_cells=True.'
@@ -100,6 +107,12 @@ class ChipClassificationLabelSourceConfig(LabelSourceConfig):
             raise ValueError('Cannot build with infer_cells=True, '
                              'cell_sz=None and lazy=True.')
         vector_source = self.vector_source.build(class_config, crs_transformer)
+
+        # If we're using the whole image as the label
+        if self.use_feature_label_as_main:
+            return FullImageClassificationLabelSource(
+            self, vector_source)
+
         return ChipClassificationLabelSource(
             self, vector_source, extent=extent, lazy=self.lazy)
 

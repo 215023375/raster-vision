@@ -79,6 +79,9 @@ class ImageDataset(AlbumentationsDataset):
     """ Dataset that reads from image files. """
     pass
 
+class CustomImageDataset(ImageDataset):
+    ...
+
 
 class GeoDataset(AlbumentationsDataset):
     """ Dataset that reads directly from a Scene

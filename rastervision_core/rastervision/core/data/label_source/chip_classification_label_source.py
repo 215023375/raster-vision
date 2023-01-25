@@ -16,7 +16,7 @@ def infer_cells(cells: List[Box], labels_df: gpd.GeoDataFrame,
                 ioa_thresh: float, use_intersection_over_cell: bool,
                 pick_min_class_id: bool,
                 background_class_id: int) -> ChipClassificationLabels:
-    """Infer ChipClassificationLabels grid from GeoJSON containing polygons.
+    """Infer FullWindowClassificationLabels grid from GeoJSON containing polygons.
 
     Given GeoJSON with polygons associated with class_ids, infer a grid of
     cells and class_ids that best captures the contents of each cell.
@@ -42,7 +42,7 @@ def infer_cells(cells: List[Box], labels_df: gpd.GeoDataFrame,
             the box covering the greatest area.
 
     Returns:
-        ChipClassificationLabels
+        FullWindowClassificationLabels
     """
     cells_df = gpd.GeoDataFrame(
         data={'cell_id': range(len(cells))},
@@ -95,10 +95,10 @@ def infer_cells(cells: List[Box], labels_df: gpd.GeoDataFrame,
 
 def read_labels(labels_df: gpd.GeoDataFrame,
                 extent: Optional[Box] = None) -> ChipClassificationLabels:
-    """Convert GeoDataFrame to ChipClassificationLabels.
+    """Convert GeoDataFrame to FullWindowClassificationLabels.
 
     If the GeoDataFrame already contains a grid of cells, then
-    ChipClassificationLabels can be constructed in a straightforward manner
+    FullWindowClassificationLabels can be constructed in a straightforward manner
     without having to infer the class of cells.
 
     If extent is given, only labels that intersect with it are returned.
@@ -108,7 +108,7 @@ def read_labels(labels_df: gpd.GeoDataFrame,
         extent: Box in pixel coords
 
     Returns:
-       ChipClassificationLabels
+       FullWindowClassificationLabels
     """
     if extent is not None:
         extent_polygon = extent.to_shapely()
@@ -245,3 +245,72 @@ class ChipClassificationLabelSource(LabelSource):
     @property
     def extent(self) -> Box:
         return self._extent
+
+class FullImageClassificationLabelSource(LabelSource):
+    """A source of chip classification labels.
+
+    Ideally the vector_source contains a square for each cell in the grid. But
+    in reality, it can be difficult to label imagery in such an exhaustive way.
+    So, this can also handle sources with non-overlapping polygons that
+    do not necessarily cover the entire extent. It infers the grid of cells
+    and associated class_ids using the extent and options if infer_cells is
+    set to True.
+    """
+
+    def __init__(self,
+                 label_source_config: 'ChipClassificationLabelSourceConfig',
+                 vector_source: 'VectorSource'):
+        """Constructs a LabelSource for chip classification.
+
+        Args:
+            label_source_config (ChipClassificationLabelSourceConfig): Config
+                for class inference.
+            vector_source (VectorSource): Source of vector labels.
+            extent (Box): Box used to filter the labels by extent or
+                compute grid.
+            lazy (bool, optional): If True, labels are not populated during
+                initialization. Defaults to False.
+        """
+        self.cfg = label_source_config
+        self.labels_df = vector_source.get_dataframe()
+        print("Full image labels df: ", self.labels_df.head)
+
+        self.validate_labels(self.labels_df)
+
+        self.labels = ChipClassificationLabels.make_empty()
+
+    def populate_labels(self, cells: Optional[Iterable[Box]] = None) -> None:
+        """Populate self.labels by either reading or inferring.
+
+        If cfg.infer_cells is True or specific cells are given, the labels are
+        inferred. Otherwise, they are read from the geojson.
+        """
+        if self.cfg.infer_cells or cells is not None:
+            self.labels = self.infer_cells(cells=cells)
+        else:
+            self.labels = read_labels(self.labels_df, extent=self.extent)
+
+    def get_labels(self, **kwargs) -> ChipClassificationLabels:
+        return self.labels
+
+    def __getitem__(self, key: Any) -> int:
+        """Return label for a window, inferring it if it is not already known.
+        """
+        if isinstance(key, Box):
+            window = key
+            if window not in self.labels:
+                self.labels += self.infer_cells(cells=[window])
+            return self.labels[window].class_id
+        else:
+            return super().__getitem__(key)
+
+    def validate_labels(self, df: gpd.GeoDataFrame) -> None:
+        geom_types = set(df.geom_type)
+        if 'Point' in geom_types or 'LineString' in geom_types:
+            raise ValueError(
+                'LineStrings and Points are not supported '
+                'in ChipClassificationLabelSource. Use BufferTransformer '
+                'to buffer them into Polygons.')
+
+        if 'class_id' not in df.columns:
+            raise ValueError('All label polygons must have a class_id.')
