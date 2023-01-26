@@ -108,13 +108,13 @@ class ChipClassificationLabelSourceConfig(LabelSourceConfig):
                              'cell_sz=None and lazy=True.')
         vector_source = self.vector_source.build(class_config, crs_transformer)
 
-        # If we're using the whole image as the label
-        if self.use_feature_label_as_main:
-            return FullImageClassificationLabelSource(
-            self, vector_source)
+        # # If we're using the whole image as the label
+        # if self.use_feature_label_as_main:
+        #     return FullImageClassificationLabelSource(
+        #     self, vector_source)
 
         return ChipClassificationLabelSource(
-            self, vector_source, extent=extent, lazy=self.lazy)
+            self, vector_source, full_window_mode=self.use_feature_label_as_main,extent=extent, lazy=self.lazy)
 
     def update(self, pipeline=None, scene=None):
         super().update(pipeline, scene)

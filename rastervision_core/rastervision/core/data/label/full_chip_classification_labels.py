@@ -5,42 +5,30 @@ from dataclasses import dataclass
 import numpy as np
 
 from rastervision.core.box import Box
-from rastervision.core.data.label import Labels
+from rastervision.core.data.scene import Scene
+from rastervision.core.data.label import Labels, ClassificationLabel
 
 if TYPE_CHECKING:
     from rastervision.core.data import (ClassConfig, CRSTransformer)
     from shapely.geometry import Polygon
 
 
-@dataclass
-class ClassificationLabel:
-    class_id: int
-    scores: Optional[Sequence[float]] = None
-
-    def __iter__(self):
-        return iter((self.class_id, self.scores))
-
-
 class FullWindowClassificationLabels(Labels):
     """Represents whole scene image (no grid) associated with classes."""
 
-    def __init__(self,
-                 scene_to_label: Optional[Dict[Scene.id, Tuple[int, Optional[
-                     Sequence[float]]]]] = None):
-        if scene_to_label is None:
-            scene_to_label = {}
+    def filter_by_aoi(self, aoi_polygons):
+        pass
 
-        self.scene_to_label = {
-            scene: ClassificationLabel(*label)
-            for scene, label in scene_to_label.items()
-        }
+    def __init__(self, class_ids=None):
+        class_ids = class_ids or []
+        self.labels = [ClassificationLabel(class_id) for class_id in class_ids]
 
     def __len__(self) -> int:
-        return len(self.scene_to_label)
+        return len(self.labels)
 
     def __eq__(self, other: 'FullWindowClassificationLabels') -> bool:
         return (isinstance(other, FullWindowClassificationLabels)
-                and self.scene_to_label == other.scene_to_label)
+                and self.labels == other.labels)
 
     def __add__(self, other: 'FullWindowClassificationLabels'
                 ) -> 'FullWindowClassificationLabels':
@@ -50,15 +38,16 @@ class FullWindowClassificationLabels(Labels):
         return result
 
     def __contains__(self, cell: Box) -> bool:
-        return cell in self.scene_to_label
+        # Assuming True (all cells present)
+        return True
 
     def __getitem__(self, scene: Scene) -> ClassificationLabel:
-        return self.scene_to_label[scene.id]
+        return self.labels[0]
 
     def __setitem__(self, scene: Scene,
                     value: Tuple[int, Optional[Sequence[float]]]):
         class_id, scores = value
-        self.set_cell(scene.id, class_id, scores=scores)
+        self.labels[0] = ClassificationLabel(class_id, scores=scores)
 
     @classmethod
     def from_predictions(cls, scenes: Iterable[Scene],
@@ -72,16 +61,17 @@ class FullWindowClassificationLabels(Labels):
         return FullWindowClassificationLabels()
 
     def set_cell(self,
-                 scene_id: Scene.id,
+                 scene: Scene,
                  class_id: int,
                  scores: Optional['np.ndarray'] = None) -> None:
         """Set cell and its class_id.
 
         Args:
-            scene_id: (Scene.id)
+            scene: (Scene)
             class_id: int
             scores: 1d numpy array of probabilities for each class
         """
+        scene_id = scene.id
         if scores is not None:
             scores = list(map(lambda x: float(x), list(scores)))
         class_id = int(class_id)

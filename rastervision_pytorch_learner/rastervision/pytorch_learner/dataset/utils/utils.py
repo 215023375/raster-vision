@@ -63,4 +63,4 @@ def make_image_folder_dataset(data_dir: str,
             """Override to force mapping from class name to class index."""
             return classes, {c: i for (i, c) in enumerate(classes)}
 
-    return CustomImageFolder(data_dir, loader=load_image, extensions=IMG_EXTENSIONS)
+    return CustomImageFolder(data_dir, loader=load_image)

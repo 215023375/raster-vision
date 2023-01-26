@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING, Any, Iterable, List, Optional
 import numpy as np
 import geopandas as gpd
 
-from rastervision.core.data.label import ChipClassificationLabels
+from rastervision.core.data.label import ChipClassificationLabels, FullWindowClassificationLabels
 from rastervision.core.data.label_source.label_source import LabelSource
 from rastervision.core.box import Box
 
@@ -15,7 +15,9 @@ if TYPE_CHECKING:
 def infer_cells(cells: List[Box], labels_df: gpd.GeoDataFrame,
                 ioa_thresh: float, use_intersection_over_cell: bool,
                 pick_min_class_id: bool,
-                background_class_id: int) -> ChipClassificationLabels:
+                background_class_id: int,
+                is_using_full_window=False,
+                chip_size=600) -> ChipClassificationLabels:
     """Infer FullWindowClassificationLabels grid from GeoJSON containing polygons.
 
     Given GeoJSON with polygons associated with class_ids, infer a grid of
@@ -44,6 +46,19 @@ def infer_cells(cells: List[Box], labels_df: gpd.GeoDataFrame,
     Returns:
         FullWindowClassificationLabels
     """
+    class_ids = labels_df['class_id'].astype(int)
+
+    if is_using_full_window:
+        # Only one box of chip size (we don't have chip size here tho)_...
+        boxes = np.array([Box(0, 0, chip_size, chip_size)])
+
+        cells_to_class_id = {
+            cell: (class_id, None)
+            for cell, class_id in zip(boxes, class_ids)
+        }
+        labels = ChipClassificationLabels(cells_to_class_id)
+        return labels
+
     cells_df = gpd.GeoDataFrame(
         data={'cell_id': range(len(cells))},
         geometry=[c.to_shapely() for c in cells])
@@ -84,7 +99,6 @@ def infer_cells(cells: List[Box], labels_df: gpd.GeoDataFrame,
         df = df.sort_values('ioa').drop_duplicates(['cell_id'], keep='last')
 
     boxes = [Box.from_shapely(c).to_int() for c in df['geometry_cell']]
-    class_ids = df['class_id'].astype(int)
     cells_to_class_id = {
         cell: (class_id, None)
         for cell, class_id in zip(boxes, class_ids)
@@ -94,7 +108,10 @@ def infer_cells(cells: List[Box], labels_df: gpd.GeoDataFrame,
 
 
 def read_labels(labels_df: gpd.GeoDataFrame,
-                extent: Optional[Box] = None) -> ChipClassificationLabels:
+                extent: Optional[Box] = None,
+                full_chip_labels = None,
+                chip_size = 600,
+                ) -> ChipClassificationLabels:
     """Convert GeoDataFrame to FullWindowClassificationLabels.
 
     If the GeoDataFrame already contains a grid of cells, then
@@ -110,6 +127,18 @@ def read_labels(labels_df: gpd.GeoDataFrame,
     Returns:
        FullWindowClassificationLabels
     """
+    class_ids = labels_df['class_id'].astype(int)
+    if full_chip_labels:
+        # Only one box of chip size (we don't have chip size here tho)_...
+        boxes = np.array([Box(0, 0, chip_size, chip_size)])
+
+        cells_to_class_id = {
+            cell: (class_id, None)
+            for cell, class_id in zip(boxes, class_ids)
+        }
+        labels = ChipClassificationLabels(cells_to_class_id)
+        return labels
+
     if extent is not None:
         extent_polygon = extent.to_shapely()
         labels_df = labels_df[labels_df.intersects(extent_polygon)]
@@ -120,7 +149,7 @@ def read_labels(labels_df: gpd.GeoDataFrame,
     else:
         boxes = np.array(
             [Box.from_shapely(c).to_int() for c in labels_df.geometry])
-    class_ids = labels_df['class_id'].astype(int)
+
     cells_to_class_id = {
         cell: (class_id, None)
         for cell, class_id in zip(boxes, class_ids)
@@ -143,6 +172,7 @@ class ChipClassificationLabelSource(LabelSource):
     def __init__(self,
                  label_source_config: 'ChipClassificationLabelSourceConfig',
                  vector_source: 'VectorSource',
+                 full_window_mode = False,
                  extent: Box = None,
                  lazy: bool = False):
         """Constructs a LabelSource for chip classification.
@@ -159,7 +189,11 @@ class ChipClassificationLabelSource(LabelSource):
         self.cfg = label_source_config
         self._extent = extent
         self.labels_df = vector_source.get_dataframe()
+        self.full_window_mode = full_window_mode
         self.validate_labels(self.labels_df)
+
+        print("Geometries: ", self.labels_df.geometry)
+        print("Extent: ", self._extent)
 
         self.labels = ChipClassificationLabels.make_empty()
         if not lazy:
@@ -174,7 +208,7 @@ class ChipClassificationLabelSource(LabelSource):
         if self.cfg.infer_cells or cells is not None:
             self.labels = self.infer_cells(cells=cells)
         else:
-            self.labels = read_labels(self.labels_df, extent=self.extent)
+            self.labels = read_labels(self.labels_df, extent=self.extent, full_chip_labels=self.full_window_mode)
 
     def infer_cells(self, cells: Optional[Iterable[Box]] = None
                     ) -> ChipClassificationLabels:
@@ -205,7 +239,10 @@ class ChipClassificationLabelSource(LabelSource):
             ioa_thresh=cfg.ioa_thresh,
             use_intersection_over_cell=cfg.use_intersection_over_cell,
             pick_min_class_id=cfg.pick_min_class_id,
-            background_class_id=cfg.background_class_id)
+            background_class_id=cfg.background_class_id,
+            is_using_full_window=self.full_window_mode,
+            chip_size=600,
+        )
 
         for cell in known_cells:
             class_id = self.labels.get_cell_class_id(cell)
@@ -257,6 +294,10 @@ class FullImageClassificationLabelSource(LabelSource):
     set to True.
     """
 
+    @property
+    def extent(self) -> Box:
+        pass
+
     def __init__(self,
                  label_source_config: 'ChipClassificationLabelSourceConfig',
                  vector_source: 'VectorSource'):
@@ -273,44 +314,26 @@ class FullImageClassificationLabelSource(LabelSource):
         """
         self.cfg = label_source_config
         self.labels_df = vector_source.get_dataframe()
-        print("Full image labels df: ", self.labels_df.head)
 
         self.validate_labels(self.labels_df)
 
-        self.labels = ChipClassificationLabels.make_empty()
+        self.labels = FullWindowClassificationLabels.make_empty()
 
-    def populate_labels(self, cells: Optional[Iterable[Box]] = None) -> None:
+    def populate_labels(self) -> None:
         """Populate self.labels by either reading or inferring.
 
         If cfg.infer_cells is True or specific cells are given, the labels are
         inferred. Otherwise, they are read from the geojson.
         """
-        if self.cfg.infer_cells or cells is not None:
-            self.labels = self.infer_cells(cells=cells)
-        else:
-            self.labels = read_labels(self.labels_df, extent=self.extent)
+        self.labels = read_labels(self.labels_df)
 
-    def get_labels(self, **kwargs) -> ChipClassificationLabels:
+    def get_labels(self, **kwargs) -> FullWindowClassificationLabels:
         return self.labels
 
     def __getitem__(self, key: Any) -> int:
         """Return label for a window, inferring it if it is not already known.
         """
-        if isinstance(key, Box):
-            window = key
-            if window not in self.labels:
-                self.labels += self.infer_cells(cells=[window])
-            return self.labels[window].class_id
-        else:
-            return super().__getitem__(key)
-
+        return self.labels[0].class_id
     def validate_labels(self, df: gpd.GeoDataFrame) -> None:
-        geom_types = set(df.geom_type)
-        if 'Point' in geom_types or 'LineString' in geom_types:
-            raise ValueError(
-                'LineStrings and Points are not supported '
-                'in ChipClassificationLabelSource. Use BufferTransformer '
-                'to buffer them into Polygons.')
-
         if 'class_id' not in df.columns:
             raise ValueError('All label polygons must have a class_id.')

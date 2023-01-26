@@ -35,15 +35,17 @@ class ChipClassificationLabels(Labels):
             for c, v in cell_to_label.items()
         }
 
+        # print("Cell to label: ", self.cell_to_label)
+
     def __len__(self) -> int:
         return len(self.cell_to_label)
 
-    def __eq__(self, other: 'FullWindowClassificationLabels') -> bool:
+    def __eq__(self, other: 'ChipClassificationLabels') -> bool:
         return (isinstance(other, ChipClassificationLabels)
                 and self.cell_to_label == other.cell_to_label)
 
-    def __add__(self, other: 'FullWindowClassificationLabels'
-                ) -> 'FullWindowClassificationLabels':
+    def __add__(self, other: 'ChipClassificationLabels'
+                ) -> 'ChipClassificationLabels':
         result = ChipClassificationLabels()
         result.extend(self)
         result.extend(other)
@@ -68,7 +70,7 @@ class ChipClassificationLabels(Labels):
         return super().from_predictions(windows, predictions)
 
     @classmethod
-    def make_empty(cls) -> 'FullWindowClassificationLabels':
+    def make_empty(cls) -> 'ChipClassificationLabels':
         return ChipClassificationLabels()
 
     def filter_by_aoi(self, aoi_polygons: Iterable['Polygon']):
@@ -146,11 +148,11 @@ class ChipClassificationLabels(Labels):
         """Return list of class_ids and scores for all cells."""
         return list(self.cell_to_label.values())
 
-    def extend(self, labels: 'FullWindowClassificationLabels') -> None:
+    def extend(self, labels: 'ChipClassificationLabels') -> None:
         """Adds cells contained in labels.
 
         Args:
-            labels: FullWindowClassificationLabels
+            labels: ChipClassificationLabels
         """
         for cell in labels.get_cells():
             self.set_cell(cell, *labels[cell])
